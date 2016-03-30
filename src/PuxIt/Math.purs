@@ -98,11 +98,11 @@ type Card = Array Int
 -- n^2 + n + 1 "images" (points). We number the points from 0 to n^2 + n
 -- and represent each "card" as simply an Array Int
 createDeck :: Int -> Array Card
-createDeck n = map (toIndex <<< pointsOnLine n) (allLines n)
+createDeck n = map (toIndexes <<< pointsOnLine n) (allLines n)
   where
     points = allPoints n
     numPoints = length points
     -- a Map : Point -> Int that gives each point's index in the `points` array
     encoding = Map.fromFoldable $ zip points (0 .. (numPoints - 1))
-    -- replace a Point with its index in the array
-    toIndex = map (\p -> fromJust $ Map.lookup p encoding)
+    -- replace an array of Points with their indexes from `encoding`
+    toIndexes = map (\p -> fromJust $ Map.lookup p encoding)

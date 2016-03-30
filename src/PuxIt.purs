@@ -7,14 +7,15 @@ import Data.Array (length, zip, (..), elemIndex, replicateM, sortBy)
 import Data.Array.Unsafe (unsafeIndex, head)
 import Data.Maybe (Maybe(..), isJust, fromMaybe)
 import Data.Traversable (traverse)
-import Data.Tuple (fst, snd, Tuple(..))
+import Data.Tuple (fst, snd, Tuple(..), uncurry)
 import Prelude (class Show, bind, (&&), (||), show, (==), return, ($), map, const, (++), (-), (>>=), compare, otherwise)
 import Pux (start, renderToDOM, EffModel())
-import PuxIt.Math (createDeck)
 import Pux.Html (Html)
 import Pux.Html.Elements (img, div)
 import Pux.Html.Events (onClick)
 import Pux.Html.Attributes (src, className, alt)
+
+import PuxIt.Math (createDeck)
 
 -- Type aliases for all of our primitives to make the code more readable.
 type Image     = Int          -- An image is just represented as an integer.
@@ -28,7 +29,7 @@ type CardIndex = Int          -- indexed by an integer.
 imageUrl :: Image -> String
 imageUrl image = "images/" ++ show image ++ ".svg"
 
--- And the only Action we have is to click on a card. The Click action will
+-- And the only Action we have is clicking on a card. The Click action will
 -- return the index of the clicked card.
 data Action = Click CardIndex
 
@@ -85,8 +86,8 @@ cardClicked :: CardIndex -> State -> State
 cardClicked i state = state { selected = toggle state.selected }
   where
     toggle NoCards                      = OneCard i       -- select card i
-    toggle (OneCard s) | s == i         = NoCards         -- unselect
-                       | otherwise      = TwoCards s i    -- select second card
+    toggle (OneCard s1)     | i == s1   = NoCards         -- unselect
+                            | otherwise = TwoCards s1 i   -- select second card
     toggle (TwoCards s1 s2) | i == s1   = OneCard s2      -- unselect s1
                             | i == s2   = OneCard s1      -- unselect s2
                             | otherwise = TwoCards s1 s2  -- no op
@@ -97,7 +98,7 @@ update (Click i) state = { state: cardClicked i state, effects: [] }
 
 -- like `map` but the function depends on the value and the index
 mapWithIndex :: forall a b. (a -> Int -> b) -> Array a -> Array b
-mapWithIndex f xs = map (\(Tuple x i) -> f x i) $ zip xs (0 .. (length xs - 1))
+mapWithIndex f xs = map (uncurry f) $ zip xs (0 .. (length xs - 1))
 
 -- The `view` is a `div` that contains the results of mapping `renderCard`
 -- over the cards and their indexes.
@@ -137,4 +138,4 @@ renderImage isSelected correctImage image =
     imageClass = if isCorrectImage then "image correct" else "image"
     isCorrectImage = case correctImage of
       Just correct -> isSelected && image == correct
-      otherwise    -> false
+      _            -> false
