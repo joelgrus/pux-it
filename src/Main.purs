@@ -6,7 +6,7 @@ import PuxIt (initialState, update, view)
 
 main = do
   state <- initialState 7  -- you could change this, if you have enough images
-  app <- start {
+  app <- start {           -- but it *must* be a prime number
     initialState: state
   , update: update
   , view: view

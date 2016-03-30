@@ -13,25 +13,7 @@ import Data.Map as Map
 -- * the point at infinity corresponding to infinite slope
 data Point = OrdinaryPoint Int Int
            | PointAtInfinity Int
-           | VerticalInfinity
-
--- We need Eq and Ord instances so we can stick them in a Map.
-instance eqPoint :: Eq Point where
-  eq (OrdinaryPoint x y) (OrdinaryPoint x' y') = x == x' && y == y'
-  eq (PointAtInfinity m) (PointAtInfinity m')  = m == m'
-  eq VerticalInfinity    VerticalInfinity      = true
-  eq _                   _                     = false
-
-instance ordPoint :: Ord Point where
-  compare (OrdinaryPoint x y) (OrdinaryPoint x' y') = case compare x x' of
-    EQ     -> compare y y'
-    result -> result
-  compare (OrdinaryPoint _ _) _                     = LT
-  compare (PointAtInfinity _) (OrdinaryPoint _ _)   = GT
-  compare (PointAtInfinity m) (PointAtInfinity m')  = compare m m'
-  compare (PointAtInfinity _) _                     = LT
-  compare VerticalInfinity    VerticalInfinity      = EQ
-  compare VerticalInfinity    _                     = GT
+           | VerticalInfinity deriving (Eq, Ord)
 
 -- And a Show instance for debugging.
 instance showPoint :: Show Point where
