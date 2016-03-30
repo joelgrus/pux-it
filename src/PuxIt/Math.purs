@@ -13,9 +13,13 @@ import Data.Map as Map
 -- * the point at infinity corresponding to infinite slope
 data Point = OrdinaryPoint Int Int
            | PointAtInfinity Int
-           | VerticalInfinity deriving (Eq, Ord)
+           | VerticalInfinity
 
--- And a Show instance for debugging.
+-- We need Eq and Ord instances to use as keys in a Map.
+derive instance eqPoint :: Eq Point
+derive instance ordPoint :: Ord Point
+
+-- It's also handy to have a Show instance for debugging.
 instance showPoint :: Show Point where
   show (OrdinaryPoint x y) = "Point " ++ show x ++ "," ++ show y
   show (PointAtInfinity m) = "Infinity " ++ show m
