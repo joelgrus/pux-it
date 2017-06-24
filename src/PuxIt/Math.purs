@@ -4,8 +4,9 @@ module PuxIt.Math where
 
 import Prelude
 import Data.Array ((..), length, zip, cons)
-import Data.Maybe.Unsafe (fromJust)
+import Data.Maybe (fromJust)
 import Data.Map as Map
+import Partial.Unsafe (unsafePartial)
 
 -- | We define three types of points:
 -- * an ordinary point (x, y)
@@ -21,21 +22,21 @@ derive instance ordPoint :: Ord Point
 
 -- It's also handy to have a Show instance for debugging.
 instance showPoint :: Show Point where
-  show (OrdinaryPoint x y) = "Point " ++ show x ++ "," ++ show y
-  show (PointAtInfinity m) = "Infinity " ++ show m
+  show (OrdinaryPoint x y) = "Point " <> show x <> "," <> show y
+  show (PointAtInfinity m) = "Infinity " <> show m
   show VerticalInfinity    = "Infinity Infinity"
 
 -- Generate all the points corresponding to a given `n`
 allPoints :: Int -> Array Point
-allPoints n = ordinaryPoints ++ infinitePoints
+allPoints n = ordinaryPoints <> infinitePoints
   where
     ordinaryPoints = do
       x <- 0 .. (n - 1)
       y <- 0 .. (n - 1)
-      return $ OrdinaryPoint x y
+      pure $ OrdinaryPoint x y
     infinitePoints = cons VerticalInfinity $ do
       m <- 0 .. (n - 1)
-      return $ PointAtInfinity m
+      pure $ PointAtInfinity m
 
 -- | Similarly, we define three types of lines:
 -- * an ordinary line with slope m and intercept b
@@ -47,15 +48,15 @@ data Line = OrdinaryLine Int Int
 
 -- Generate all the lines corresponding to a size `n`
 allLines :: Int -> Array Line
-allLines n = ordinaryLines ++ verticalLines ++ [LineAtInfinity]
+allLines n = ordinaryLines <> verticalLines <> [LineAtInfinity]
   where
     ordinaryLines = do
       m <- 0 .. (n - 1)
       b <- 0 .. (n - 1)
-      return $ OrdinaryLine m b
+      pure $ OrdinaryLine m b
     verticalLines = do
       x <- 0 .. (n - 1)
-      return $ VerticalLine x
+      pure $ VerticalLine x
 
 -- Generate all the points on a given line.
 pointsOnLine :: Int -> Line -> Array Point
@@ -65,17 +66,17 @@ pointsOnLine n line = case line of
   OrdinaryLine m b -> cons (PointAtInfinity m) $ do
     x <- 0 .. (n - 1)
     let y = (m * x + b) `mod` n
-    return $ OrdinaryPoint x y
+    pure $ OrdinaryPoint x y
   -- a vertical line at x consists of all (x, y) for y in [0 .. n-1]
   -- and also the point "VerticalInfinity"
   VerticalLine x -> cons VerticalInfinity $ do
     y <- 0 .. (n - 1)
-    return $ OrdinaryPoint x y
+    pure $ OrdinaryPoint x y
   -- the "line at infinity" consists of all the points "Infinity m"
   -- for m in [0 .. n-1] and also the point "VerticalInfinity"
   LineAtInfinity -> cons VerticalInfinity $ do
     m <- 0 .. (n - 1)
-    return $ PointAtInfinity m
+    pure $ PointAtInfinity m
 
 type Card = Array Int
 
@@ -91,4 +92,4 @@ createDeck n = map (toIndexes <<< pointsOnLine n) (allLines n)
     -- a Map : Point -> Int that gives each point's index in the `points` array
     encoding = Map.fromFoldable $ zip points (0 .. (numPoints - 1))
     -- replace an array of Points with their indexes from `encoding`
-    toIndexes = map (\p -> fromJust $ Map.lookup p encoding)
+    toIndexes = map (\p -> unsafePartial $ fromJust $ Map.lookup p encoding)
